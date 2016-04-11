@@ -1,3 +1,4 @@
+require 'byebug'
 require_relative "static_array"
 
 class DynamicArray
@@ -5,38 +6,65 @@ class DynamicArray
 
   def initialize
     @length = 0
-    @capacity = 0
-    @store = StaticArray.new(0)
+    @capacity = 8
+    @store = StaticArray.new(8)
   end
 
   # O(1)
   def [](index)
     check_index(index)
+    @store[index]
   end
 
   # O(1)
   def []=(index, value)
+    check_index(index)
+    @store[index] = value
   end
 
   # O(1)
   def pop
+    check_index(@store[@length - 1])
+    value = @store[@length - 1]
+    @length -= 1
+    @store[@length] = nil
+    value
   end
 
   # O(1) ammortized; O(n) worst case. Variable because of the possible
   # resize.
   def push(val)
-    resize! until @length > @capacity
-
-
-    @store[index] = value
+    resize! if @length == @capacity
+    @store[@length] = val
+    @length += 1
   end
 
   # O(n): has to shift over all the elements.
   def shift
+    check_index(@store[@length - 1])
+    value = @store[0]
+    i = 0
+    @length -= 1
+    while i < @length
+      @store[i] = @store[i + 1]
+      i += 1
+    end
+
+    value
   end
 
   # O(n): has to shift over all the elements.
   def unshift(val)
+    @length += 1
+    resize! if @length == @capacity
+    i = @length - 1
+
+    while i >= 1
+      @store[i] = @store[i - 1]
+      i -= 1
+    end
+
+    @store[0] = val
   end
 
   protected
@@ -44,26 +72,17 @@ class DynamicArray
   attr_writer :length
 
   def check_index(index)
-    value = @store[index]
-    value == nil ? (raise "index out of bounds") : (@store[index])
+    (@length == 0 || index >= @length) ? (raise "index out of bounds") : @store[index]
   end
 
   # O(n): has to copy over all the elements to the new store.
   def resize!
-    if @length == 0
-      @length = 1
-    else
-      @length = @length * 2
-    end
-
-    new_store = StaticArray.new(@length, nil)
-
-    @capacity = 1
+    @capacity *= 2
+    new_store = StaticArray.new(@capacity)
     i = 0
-    @store.each do |bucket|
-      new_store[i] = bucket
+    while i < @length
+      new_store[i] = @store[i]
       i += 1
-      @capacity += 1
     end
 
     @store = new_store
