@@ -19,20 +19,31 @@ class QuickSort
 
   # In-place.
   def self.sort2!(array, start = 0, length = array.length, &prc)
+    prc ||= Proc.new {|el1,el2| el1 <=> el2}
+
+    return array if length < 2
+
+    pivot = QuickSort.partition(array, start, length, &prc)
+
+    left_length = pivot - start
+    right_length = length - (left_length + 1)
+    QuickSort.sort2!(array, 0, left_length, &prc)
+    QuickSort.sort2!(array, pivot + 1, right_length, &prc)
   end
 
-  def self.partition(array, start, length, &prc)
-    return array if length < 2
-    pivot_idx = start
 
-    length.times do |idx|
-      actual_idx = start + idx
-      if array[actual_idx] < array[pivot_idx]
-        if actual_idx - pivot_idx <= 1
-          array[actual_idx], array[pivot_idx] = array[pivot_idx], array[actual_idx]
-          pivot_idx = actual_idx
+
+  def self.partition(array, start, length, &prc)
+    prc ||= Proc.new {|el1,el2| el1 <=> el2}
+    # return start if length < 2
+    pivot_idx = start
+    ((start + 1) ... (start + length)).each do |idx|
+      if prc.call(array[idx], array[pivot_idx]) < 1
+        if idx - pivot_idx <= 1
+          array[idx], array[pivot_idx] = array[pivot_idx], array[idx]
+          pivot_idx = idx
         else
-          array[actual_idx], array[pivot_idx + 1] = array[pivot_idx + 1], array[actual_idx]
+          array[idx], array[pivot_idx + 1] = array[pivot_idx + 1], array[idx]
           array[pivot_idx + 1], array[pivot_idx] = array[pivot_idx], array[pivot_idx + 1]
           pivot_idx += 1
         end
