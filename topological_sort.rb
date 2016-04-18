@@ -28,3 +28,26 @@ def kahn_topological_sort(vertices)
 
   removed_vertices
 end
+
+
+def tarjan_topological_sort(vertices)
+  seen = []
+
+  completed = []
+
+  vertices.each do |vertex|
+    dfs(vertex, seen, completed) unless completed.include?(vertex)
+  end
+
+  completed
+end
+
+def dfs(vertex, seen, completed)
+  seen << vertex
+  vertex.out_edges.each do |edge|
+    next_vertex = edge.to_vertex
+    dfs(next_vertex, seen, completed) unless seen.include?(next_vertex)
+  end
+
+  completed.unshift(vertex)
+end
